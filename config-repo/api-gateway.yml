@@ -13,6 +13,18 @@ spring:
           uri: lb://hr-service
           predicates:
             - Path=/api/hr/**
+        - id: payroll-service
+          uri: lb://payroll-service
+          predicates:
+            - Path=/api/payroll/**
+        - id: billing-service
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/billing/**
+        - id: crm-service
+          uri: lb://crm-service
+          predicates:
+            - Path=/api/crm/**
   security:
     oauth2:
       resourceserver:

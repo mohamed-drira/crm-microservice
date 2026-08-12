@@ -1,6 +1,4 @@
 # Full topology for the built services. Identity comes from Keycloak.
-# Business services (payroll/billing/crm) are still placeholders and are
-# intentionally not wired in yet.
 #
 # Build first, then start:
 #   mvn package            (or: mvn package -DskipTests)
@@ -198,3 +196,57 @@ services:
       EUREKA_URL: http://discovery-server:8761/eureka/
     ports:
       - "8082:8082"
+
+  payroll-service:
+    build: ./payroll-service
+    container_name: crm-payroll
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      payroll-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports:
+      - "8083:8083"
+
+  billing-service:
+    build: ./billing-service
+    container_name: crm-billing
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      billing-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports:
+      - "8084:8084"
+
+  crm-service:
+    build: ./crm-service
+    container_name: crm-crm
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      crm-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports:
+      - "8085:8085"
