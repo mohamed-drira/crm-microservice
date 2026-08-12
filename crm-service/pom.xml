@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.crm</groupId>
+        <artifactId>crm-microservices</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>crm-service</artifactId>
+    <packaging>jar</packaging>
+    <name>crm-service</name>
+
+    <!-- TODO: add spring-boot-starter-parent inheritance or BOM import,
+         dependencies (web, jpa, security, kafka, eureka-client/config-client,
+         lombok, etc.) once implementation starts. Placeholder only. -->
+
+    <dependencies>
+    </dependencies>
+</project>

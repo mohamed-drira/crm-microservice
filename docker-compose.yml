@@ -1,0 +1,200 @@
+# Full topology for the built services. Identity comes from Keycloak.
+# Business services (payroll/billing/crm) are still placeholders and are
+# intentionally not wired in yet.
+#
+# Build first, then start:
+#   mvn package            (or: mvn package -DskipTests)
+#   docker compose up -d --build
+
+services:
+
+  # ---------- Infrastructure ----------
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: crm-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: crm-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server kafka:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  discovery-server:
+    build: ./discovery-server
+    container_name: crm-discovery
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8761 && exec 3>&- || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  config-server:
+    build: ./config-server
+    container_name: crm-config
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    environment:
+      CONFIG_REPO_LOCATION: /config
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    volumes:
+      - ./config-repo:/config
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8888 && exec 3>&- || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: crm-gateway
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports:
+      - "8080:8080"
+
+  # ---------- Identity ----------
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: crm-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    volumes:
+      - ./keycloak/import:/opt/keycloak/data/import
+    ports:
+      - "8090:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && exec 3>&- || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  # ---------- Databases (one per service) ----------
+
+  hr-db:
+    image: mysql:8.0
+    container_name: crm-hr-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hr_db
+      MYSQL_USER: hr
+      MYSQL_PASSWORD: hr123
+    ports:
+      - "3312:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  payroll-db:
+    image: mysql:8.0
+    container_name: crm-payroll-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payroll_db
+      MYSQL_USER: payroll
+      MYSQL_PASSWORD: payroll123
+    ports:
+      - "3313:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  billing-db:
+    image: mysql:8.0
+    container_name: crm-billing-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: billing_db
+      MYSQL_USER: billing
+      MYSQL_PASSWORD: billing123
+    ports:
+      - "3314:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  crm-db:
+    image: mysql:8.0
+    container_name: crm-crm-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: crm_db
+      MYSQL_USER: crm
+      MYSQL_PASSWORD: crm123
+    ports:
+      - "3315:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ---------- Business services ----------
+
+  hr-service:
+    build: ./hr-service
+    container_name: crm-hr
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      hr-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/
+    ports:
+      - "8082:8082"

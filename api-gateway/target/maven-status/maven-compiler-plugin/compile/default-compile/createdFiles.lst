@@ -1,0 +1,3 @@
+com\crm\gateway\config\SecurityConfig.class
+com\crm\gateway\security\JwtHeaderForwardFilter.class
+com\crm\gateway\GatewayApplication.class
