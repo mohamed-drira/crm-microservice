@@ -3,6 +3,8 @@ package com.crm.crmservice.config;
 import com.crm.crmservice.security.TrustedHeadersFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,18 +12,20 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * The gateway is the only entry point and validates every Keycloak token at the
- * edge. This service trusts the forwarded identity headers.
- */
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Map;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final TrustedHeadersFilter trustedHeadersFilter;
+    private final ObjectMapper objectMapper;
 
-    public SecurityConfig(TrustedHeadersFilter trustedHeadersFilter) {
+    public SecurityConfig(TrustedHeadersFilter trustedHeadersFilter, ObjectMapper objectMapper) {
         this.trustedHeadersFilter = trustedHeadersFilter;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -36,7 +40,26 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/actuator/health"
                         ).permitAll()
-                        .anyRequest().permitAll())
+                        .requestMatchers(HttpMethod.POST, "/api/crm/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/crm/contacts/{id}/status").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/crm/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/crm/**").hasAnyRole("USER", "ADMIN")
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write(objectMapper.writeValueAsString(
+                                    Map.of("status", 401, "error", "Unauthorized",
+                                            "message", "Authentication required")));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write(objectMapper.writeValueAsString(
+                                    Map.of("status", 403, "error", "Forbidden",
+                                            "message", "Insufficient permissions")));
+                        }))
                 .addFilterBefore(trustedHeadersFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
