@@ -76,11 +76,13 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LeaveRequestResponse getById(Long id) {
         return LeaveRequestResponse.from(getEntity(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LeaveRequestResponse> getAll() {
         return leaveRequestRepository.findAll().stream()
                 .map(LeaveRequestResponse::from)
@@ -88,6 +90,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LeaveRequestResponse> getByEmployee(Long employeeId) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Employee not found: " + employeeId);

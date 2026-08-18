@@ -35,9 +35,4 @@ public class Interaction {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    @PreUpdate
-    public void preUpdate() {
-        // No updatedAt for interactions - they are immutable once created
-    }
 }

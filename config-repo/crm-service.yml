@@ -16,6 +16,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.crm.hr.messaging,com.crm.billing.messaging,com.crm.crmservice.messaging"
+        spring.json.type.mapping: "employee-event:com.crm.crmservice.messaging.EmployeeEvent,invoice-event:com.crm.crmservice.messaging.InvoiceEvent"
 
 app:
   kafka:

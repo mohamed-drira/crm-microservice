@@ -54,11 +54,13 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DepartmentResponse getById(Long id) {
         return DepartmentResponse.from(getEntity(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
         return departmentRepository.findAll().stream()
                 .map(DepartmentResponse::from)

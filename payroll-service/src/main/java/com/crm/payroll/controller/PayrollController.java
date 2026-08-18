@@ -4,12 +4,14 @@ import com.crm.payroll.dto.request.FeeRequest;
 import com.crm.payroll.dto.request.PayrollRequest;
 import com.crm.payroll.dto.request.PayrollStatusRequest;
 import com.crm.payroll.dto.response.PayrollResponse;
+import com.crm.payroll.entity.enums.PayrollStatus;
 import com.crm.payroll.service.PayrollService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -66,7 +68,14 @@ public class PayrollController {
             return payrollService.getByEmployee(employeeId);
         }
         if (status != null) {
-            return payrollService.getByStatus(com.crm.payroll.entity.enums.PayrollStatus.valueOf(status.toUpperCase()));
+            PayrollStatus payrollStatus;
+            try {
+                payrollStatus = PayrollStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid status: " + status + ". Allowed values: DRAFT, PAID, CANCELLED");
+            }
+            return payrollService.getByStatus(payrollStatus);
         }
         return payrollService.getAll();
     }

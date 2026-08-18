@@ -65,11 +65,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EmployeeResponse getById(Long id) {
         return EmployeeResponse.from(getEntity(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EmployeeResponse> getAll() {
         return employeeRepository.findAll().stream()
                 .map(EmployeeResponse::from)
@@ -77,6 +79,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EmployeeResponse> getByDepartment(Long departmentId) {
         if (!departmentRepository.existsById(departmentId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Department not found: " + departmentId);
