@@ -177,6 +177,22 @@ services:
       timeout: 5s
       retries: 15
 
+  notification-db:
+    image: mysql:8.0
+    container_name: crm-notification-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: notification_db
+      MYSQL_USER: notification
+      MYSQL_PASSWORD: notification123
+    ports:
+      - "3316:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
   # ---------- Business services ----------
 
   hr-service:
@@ -194,8 +210,6 @@ services:
     environment:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
-    ports:
-      - "8082:8082"
 
   payroll-service:
     build: ./payroll-service
@@ -212,8 +226,6 @@ services:
     environment:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
-    ports:
-      - "8083:8083"
 
   billing-service:
     build: ./billing-service
@@ -230,8 +242,6 @@ services:
     environment:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
-    ports:
-      - "8084:8084"
 
   crm-service:
     build: ./crm-service
@@ -248,5 +258,19 @@ services:
     environment:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://discovery-server:8761/eureka/
-    ports:
-      - "8085:8085"
+
+  notification-service:
+    build: ./notification-service
+    container_name: crm-notification
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_URL: http://discovery-server:8761/eureka/

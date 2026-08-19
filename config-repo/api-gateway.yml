@@ -25,8 +25,26 @@ spring:
           uri: lb://crm-service
           predicates:
             - Path=/api/crm/**
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
   security:
     oauth2:
       resourceserver:
         jwt:
           jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://keycloak:8080/realms/crm/protocol/openid-connect/certs}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+app:
+  kafka:
+    topic:
+      audit-events: audit-events
+  ratelimit:
+    read-limit: 100
+    write-limit: 20
+    window-ms: 60000

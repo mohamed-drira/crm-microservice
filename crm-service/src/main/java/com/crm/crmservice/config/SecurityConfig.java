@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/actuator/health"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/crm/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/crm/contacts/{id}/status").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/crm/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/crm/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/crm/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/crm/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated())

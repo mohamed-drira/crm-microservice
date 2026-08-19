@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration
 public class KafkaTopicConfig {
@@ -29,5 +33,28 @@ public class KafkaTopicConfig {
                 .partitions(1)
                 .replicas(1)
                 .build();
+    }
+
+    @Bean
+    public NewTopic employeeEventsDlt() {
+        return TopicBuilder.name(employeeEventsTopic + "-dlt")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic invoiceEventsDlt() {
+        return TopicBuilder.name(invoiceEventsTopic + "-dlt")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public DefaultErrorHandler kafkaErrorHandler(KafkaTemplate<String, Object> kafkaTemplate) {
+        return new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(kafkaTemplate),
+                new FixedBackOff(1000L, 3L));
     }
 }

@@ -1,3 +1,7 @@
 C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\config\SecurityConfig.java
+C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\filter\RateLimitFilter.java
 C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\security\JwtHeaderForwardFilter.java
+C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\messaging\AuditEvent.java
+C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\messaging\AuditEventProducer.java
+C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\filter\AuditLogFilter.java
 C:\Users\drira\Downloads\crm-microservices\crm-microservices\api-gateway\src\main\java\com\crm\gateway\GatewayApplication.java

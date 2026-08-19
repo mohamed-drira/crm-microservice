@@ -12,6 +12,7 @@
         <module name="crm-service" />
         <module name="api-gateway" />
         <module name="hr-service" />
+        <module name="notification-service" />
         <module name="billing-service" />
       </profile>
     </annotationProcessing>
@@ -28,6 +29,7 @@
       <module name="crm-service" options="-parameters" />
       <module name="discovery-server" options="-parameters" />
       <module name="hr-service" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
       <module name="payroll-service" options="-parameters" />
     </option>
   </component>

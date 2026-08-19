@@ -1,3 +1,8 @@
 com\crm\gateway\config\SecurityConfig.class
+com\crm\gateway\messaging\AuditEvent.class
+com\crm\gateway\messaging\AuditEventProducer.class
+com\crm\gateway\filter\RateLimitFilter.class
+com\crm\gateway\filter\RateLimitFilter$SlidingWindowCounter.class
 com\crm\gateway\security\JwtHeaderForwardFilter.class
+com\crm\gateway\filter\AuditLogFilter.class
 com\crm\gateway\GatewayApplication.class
